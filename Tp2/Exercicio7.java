@@ -1,0 +1,250 @@
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
+
+class Veiculo{
+	private int id;
+	private String marca;
+	private String modelo;
+	private int ano;
+	private String categoria;
+	private String[] combustivel;
+	private int cilindros;
+	private float cilindrada;
+	private String transmissao;
+	private String tracao;
+	private float consumo_cidade;
+	private float consumo_estrada;
+	private float co2;
+	private boolean turbo;
+	private Data data_registro;
+
+	public Veiculo(int id, String marca, String modelo, int ano, String categoria,
+			String[] combustivel, int cilindros, float cilindrada, String transmissao,
+			String tracao, float consumo_cidade, float consumo_estrada, float co2, boolean turbo, Data data_registro){
+		this.id = id;
+		this.marca = marca;
+		this.modelo = modelo;
+		this.ano = ano;
+		this.categoria = categoria;
+		this.combustivel = combustivel;
+		this.cilindros = cilindros;
+		this.cilindrada = cilindrada;
+		this.transmissao = transmissao;
+		this.tracao = tracao;
+		this.consumo_cidade = consumo_cidade;
+		this.consumo_estrada = consumo_estrada;
+		this.co2 = co2;
+		this.turbo = turbo;
+		this.data_registro = data_registro;
+	}
+
+	public int getId(){
+		return id;
+	}
+	public String getMarca(){
+		return marca;
+	}
+	public String getModelo(){
+		return modelo;
+	}
+	public int getAno(){
+		return ano;
+	}
+	public String getCategoria(){
+		return categoria;
+	}
+	public String[] getCombustivel(){
+		return combustivel;
+	}
+	public int getCilindros(){
+		return cilindros;
+	}
+	public float getCilindrada(){
+		return cilindrada;
+	}
+	public String getTransmissao(){
+		return transmissao;
+	}
+	public String getTracao(){
+		return tracao;
+	}
+	public float getCidade(){
+		return consumo_cidade;
+	}
+	public float getEstrada(){
+		return consumo_estrada;
+	}
+	public float getCo2(){
+		return co2;
+	}
+	public boolean getTurbo(){
+		return turbo;
+	}
+	public Data getData(){
+		return data_registro;
+	}
+
+    public static Veiculo parseVeiculo(String s){
+        String[] campos = s.split(",");
+        int id = Integer.parseInt(campos[0]);
+        String marca = campos[1];
+        String modelo = campos[2];
+        int ano = Integer.parseInt(campos[3]);
+        String categoria = campos[4];
+        String[] combustivel = campos[5].split(";");
+        int cilindros = Integer.parseInt(campos[6]);
+        float cilindrada = Float.parseFloat(campos[7]);
+        String transmissao = campos[8];
+        String tracao = campos[9];
+        float consumo_cidade = Float.parseFloat(campos[10]);
+        float consumo_estrada = Float.parseFloat(campos[11]);
+        float co2 = Float.parseFloat(campos[12]);
+        boolean turbo = Boolean.parseBoolean(campos[13]);
+        Data data_registro = Data.parseData(campos[14]);
+        Veiculo v = new Veiculo(id, marca, modelo, ano, categoria, combustivel, cilindros, cilindrada, transmissao, 
+			                    tracao, consumo_cidade, consumo_estrada, co2, turbo, data_registro);
+        return v;
+    }
+
+    public String format(){
+        return String.format("%d,%s,%s,%d,%s,%s,%d,%.1f,%s,%s,%.2f,%.2f,%.2f,%b,%s", id, marca, modelo, ano, categoria,
+		                     String.join(";", combustivel), cilindros, cilindrada, transmissao, tracao, consumo_cidade, 
+							 consumo_estrada, co2, turbo, data_registro.format());
+    }
+
+}
+
+class Data{
+    private int dia;
+    private int mes;
+    private int ano;
+
+    public Data(int d, int m, int a){
+        this.dia = d;
+        this.mes = m;
+        this.ano = a;
+    }
+
+    public int getDia(){
+        return dia;
+    }
+    public int getMes(){
+        return mes;
+    }
+    public int getAno(){
+        return ano;
+    }
+
+    public static Data parseData(String s){
+        String[] campos = s.split("-");
+        int ano = Integer.parseInt(campos[0]);
+        int mes = Integer.parseInt(campos[1]);
+        int dia = Integer.parseInt(campos[2]);
+        return new Data(dia, mes, ano);
+    }
+
+    public String format(){
+        return String.format("%02d/%02d/%04d", dia, mes, ano);
+    }
+}
+
+class LeitorCsv {
+    private Veiculo[] arrayVeiculo;
+
+    public Veiculo[] ler(String caminho) {
+        arrayVeiculo = new Veiculo[1000];
+        int i = 0;
+
+        try {
+            Scanner sc = new Scanner(new File(caminho));
+
+            while (sc.hasNext()) {
+                String linha = sc.nextLine();
+                arrayVeiculo[i] = Veiculo.parseVeiculo(linha);
+                i++;
+            }
+
+            sc.close();
+        } catch (FileNotFoundException e) {
+            System.err.println("Arquivo não encontrado: " + e.getMessage());
+        }
+
+        return arrayVeiculo;
+    }
+}
+
+class OrdenacaoBucketsort {
+ 
+    private static final int NUM_BALDES = 10;
+    private static final float NORMALIZADOR = 8.1f;
+ 
+    public static void ordenar(Veiculo[] vetor, int n) {
+        Veiculo[][] baldes = new Veiculo[NUM_BALDES][n];
+        int[] tamanhoBalde = new int[NUM_BALDES];
+ 
+        for (int i = 0; i < n; i++) {
+            int indice = calcularIndiceBalde(vetor[i].getCilindrada());
+            int pos = tamanhoBalde[indice];
+            baldes[indice][pos] = vetor[i];
+            tamanhoBalde[indice]++;
+        }
+ 
+        for (int i = 0; i < NUM_BALDES; i++) {
+            ordenarPorInsercao(baldes[i], tamanhoBalde[i]);
+        }
+ 
+        int pos = 0;
+        for (int i = 0; i < NUM_BALDES; i++) {
+            for (int j = 0; j < tamanhoBalde[i]; j++) {
+                vetor[pos] = baldes[i][j];
+                pos++;
+            }
+        }
+    }
+ 
+    private static int calcularIndiceBalde(float cilindrada) {
+        float chaveNormalizada = cilindrada / NORMALIZADOR;
+        int indice = (int) (chaveNormalizada * NUM_BALDES);
+ 
+        if (indice >= NUM_BALDES) {
+            indice = NUM_BALDES - 1;
+        }
+        if (indice < 0) {
+            indice = 0;
+        }
+        return indice;
+    }
+ 
+    private static void ordenarPorInsercao(Veiculo[] balde, int tamanho) {
+        for (int i = 1; i < tamanho; i++) {
+            Veiculo atual = balde[i];
+            float chaveAtual = atual.getCilindrada();
+            int j = i - 1;
+ 
+            while (j >= 0 && balde[j].getCilindrada() > chaveAtual) {
+                balde[j + 1] = balde[j];
+                j--;
+            }
+            balde[j + 1] = atual;
+        }
+    }
+}
+
+class Exercicio7{
+    public static void main(String[] args) {
+        LeitorCsv leitor = new LeitorCsv();
+        Veiculo[] veiculos = leitor.ler("/tmp/veiculos.csv");
+
+        int n = 0;
+        while (n < veiculos.length && veiculos[n] != null) {
+            n++;
+        }
+
+        OrdenacaoBucketsort.ordenar(veiculos, n);
+
+        for (int i = 0; i < n; i++) {
+            System.out.println(veiculos[i].format());
+        }
+    }
+}
