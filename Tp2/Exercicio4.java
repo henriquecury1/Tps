@@ -186,6 +186,8 @@ class Exercicio4{
             veiculos[j + 1] = chave;
         }
     }
+
+	//Criar um subarray de 50 e ordenar ele
     public static void main(String[] args){
         LeitorCsv leitor = new LeitorCsv();
         Veiculo[] veiculos = leitor.ler("/tmp/veiculos.csv");
